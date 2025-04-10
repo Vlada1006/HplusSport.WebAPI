@@ -16,9 +16,16 @@ namespace HplusSportAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCategories([FromQuery]QueryParameters queryParameters)
+        public async Task<IActionResult> GetAllCategories([FromQuery]CategoryQueryParameters queryParameters)
         {
             IQueryable<Category> categories = _db.Categories;
+
+            if(!string.IsNullOrEmpty(queryParameters.Name))
+            {
+                categories = categories.Where(
+                    c => c.Name.ToLower().Contains(queryParameters.Name.ToLower()));
+            }
+
             categories = categories.
                 Skip(queryParameters.Size * (queryParameters.Page - 1))
                 .Take(queryParameters.Size);
