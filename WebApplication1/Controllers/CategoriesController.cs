@@ -1,4 +1,5 @@
-﻿using HplusSportAPI.Models;
+﻿using HplusSport.API.Models;
+using HplusSportAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +27,17 @@ namespace HplusSportAPI.Controllers
                     c => c.Name.ToLower().Contains(queryParameters.Name.ToLower()));
             }
 
-            categories = categories.
+            if (!string.IsNullOrEmpty(queryParameters.SortBy))
+            {
+                if (typeof(Category).GetProperty(queryParameters.SortBy) != null)
+                {
+                    categories = categories.OrderByCustom(
+                        queryParameters.SortBy,
+                        queryParameters.SortOrder);
+                }
+            }
+
+                categories = categories.
                 Skip(queryParameters.Size * (queryParameters.Page - 1))
                 .Take(queryParameters.Size);
 
