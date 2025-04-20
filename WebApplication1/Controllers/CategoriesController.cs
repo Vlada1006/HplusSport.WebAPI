@@ -1,4 +1,5 @@
-﻿using HplusSportAPI.Models;
+﻿using HplusSport.API.Models;
+using HplusSportAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,10 +17,31 @@ namespace HplusSportAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCategories()
+        public async Task<IActionResult> GetAllCategories([FromQuery]CategoryQueryParameters queryParameters)
         {
-            var categories = await _db.Categories.ToArrayAsync();
-            return Ok(categories);
+            IQueryable<Category> categories = _db.Categories;
+
+            if(!string.IsNullOrEmpty(queryParameters.Name))
+            {
+                categories = categories.Where(
+                    c => c.Name.ToLower().Contains(queryParameters.Name.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(queryParameters.SortBy))
+            {
+                if (typeof(Category).GetProperty(queryParameters.SortBy) != null)
+                {
+                    categories = categories.OrderByCustom(
+                        queryParameters.SortBy,
+                        queryParameters.SortOrder);
+                }
+            }
+
+                categories = categories.
+                Skip(queryParameters.Size * (queryParameters.Page - 1))
+                .Take(queryParameters.Size);
+
+            return Ok(await categories.ToArrayAsync());
         }
 
         [HttpGet]
