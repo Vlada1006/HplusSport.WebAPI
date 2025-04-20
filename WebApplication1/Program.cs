@@ -39,9 +39,24 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHsts(options =>
+{
+    options.MaxAge = TimeSpan.FromDays(365);
+});
+
 builder.Services.AddDbContext<ShopDbContext>(options =>
 {
     options.UseInMemoryDatabase("Shop");
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder
+                .WithOrigins("https://localhost:7144", "http://localhost:5276")
+                .WithHeaders("X-API-VERSION");
+    });
 });
 
 var app = builder.Build();
@@ -61,10 +76,16 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
+else
+{
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors();
 
 app.MapControllers();
 
